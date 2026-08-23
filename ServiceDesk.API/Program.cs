@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using ServiceDesk.Data.Data;
+
 namespace ServiceDesk.API
 {
     public class Program
@@ -6,6 +9,10 @@ namespace ServiceDesk.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddDbContext<ServiceDeskDbContext>(options =>
+            options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Add services to the container.
 
