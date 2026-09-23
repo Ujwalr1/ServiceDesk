@@ -24,10 +24,10 @@ namespace ServiceDesk.Data.Entities
         public DateTime CreatedAt { get; set; }
 
         // Navigation properties
-        public ICollection<Ticket> CreatedTickets { get; set; }
+        public ICollection<Ticket> CreatedTickets { get; set; } = new List<Ticket>();
 
-        public ICollection<Ticket> AssignedTickets { get; set; }
+        public ICollection<Ticket> AssignedTickets { get; set; } = new List<Ticket>();
 
-        public ICollection<TicketComment> TicketComments { get; set; }
+        public ICollection<TicketComment> TicketComments { get; set; } = new List<TicketComment>();
     }
 }

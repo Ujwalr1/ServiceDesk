@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ServiceDesk.Data.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,7 @@ namespace ServiceDesk.Data.Entities
 
         public int StatusId { get; set; }
 
-        public string Priority { get; set; }
+        public TicketPriority Priority { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
@@ -32,12 +33,12 @@ namespace ServiceDesk.Data.Entities
 
         public User CreatedByUser { get; set; }
 
-        public User AssignedToUser { get; set; }
+        public User? AssignedToUser { get; set; }
 
         public Category Category { get; set; }
 
         public TicketStatus Status { get; set; }
 
-        public ICollection<TicketComment> Comments { get; set; }
+        public ICollection<TicketComment> Comments { get; set; } = new List<TicketComment>();
     }
 }

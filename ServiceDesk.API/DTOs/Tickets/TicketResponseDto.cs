@@ -1,4 +1,6 @@
-﻿namespace ServiceDesk.API.DTOs.Tickets
+﻿using ServiceDesk.Data.Enums;
+
+namespace ServiceDesk.API.DTOs.Tickets
 {
     public class TicketResponseDto
     {
@@ -24,7 +26,7 @@
 
         public string StatusName { get; set; }
 
-        public string Priority { get; set; }
+        public TicketPriority Priority { get; set; }
 
         public DateTime CreatedAt { get; set; }
 

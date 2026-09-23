@@ -112,8 +112,7 @@ namespace ServiceDesk.Data.Data
                     .IsRequired();
 
                 entity.Property(t => t.Priority)
-                    .IsRequired()
-                    .HasMaxLength(20);
+                    .IsRequired();
             });
 
             // TicketStatus
