@@ -191,6 +191,19 @@ namespace ServiceDesk.Data.Data
                 }
             );
 
+            modelBuilder.Entity<User>().HasData(
+                new User
+                {
+                    Id = 1,
+                    FullName = "System Admin",
+                    Email = "admin@servicedesk.com",
+                    PasswordHash = "TEMP_HASH",
+                    Role = "Admin",
+                    IsActive = true,
+                    CreatedAt = new DateTime(2026, 1, 1)
+                }
+            );
+
         }
     }
 }

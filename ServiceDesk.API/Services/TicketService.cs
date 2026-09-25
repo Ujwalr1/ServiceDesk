@@ -91,6 +91,7 @@ namespace ServiceDesk.API.Services
             if (!categoryExists)
             {
                 // validation failure
+                throw new ArgumentException("Invalid or inactive category.");
             }
 
             var ticket = new Ticket
