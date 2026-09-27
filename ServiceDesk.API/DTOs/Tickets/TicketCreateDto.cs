@@ -7,11 +7,11 @@ namespace ServiceDesk.API.DTOs.Tickets
     {
         [Required]
         [MaxLength(200)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(5000)]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Required]
         public int CategoryId { get; set; }

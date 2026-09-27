@@ -109,9 +109,9 @@ namespace ServiceDesk.API.Services
             }
 
             // Soft delete or hard delete
-            //category.IsActive = false; 
+            category.IsActive = false; 
 
-            _context.Categories.Remove(category);
+            //_context.Categories.Remove(category);
 
             await _context.SaveChangesAsync();
 
