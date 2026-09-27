@@ -48,11 +48,44 @@ namespace ServiceDesk.API.Services
 
         public async Task<UserResponseDto> CreateAsync(UserCreateDto dto)
         {
+            // Validate full name
+            if (string.IsNullOrWhiteSpace(dto.FullName))
+            {
+                throw new ArgumentException(
+                    "Full name cannot be empty.");
+            }
+
+            // Validate email
+            if (string.IsNullOrWhiteSpace(dto.Email))
+            {
+                throw new ArgumentException(
+                    "Email cannot be empty.");
+            }
+
+            // Validate role
+            if (string.IsNullOrWhiteSpace(dto.Role))
+            {
+                throw new ArgumentException(
+                    "Role cannot be empty.");
+            }
+
+            var email = dto.Email.Trim();
+
+            // Check for duplicate email
+            var emailExists = await _context.Users
+                .AnyAsync(u => u.Email == email);
+
+            if (emailExists)
+            {
+                throw new ArgumentException(
+                    "A user with this email already exists.");
+            }
+
             var user = new User
             {
                 FullName = dto.FullName,
                 Email = dto.Email,
-                Role = dto.Role,
+                Role = dto.Role.Trim(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
             };
@@ -81,9 +114,44 @@ namespace ServiceDesk.API.Services
                 return false;
             }
 
-            user.FullName = dto.FullName;
+            // Validate full name
+            if (string.IsNullOrWhiteSpace(dto.FullName))
+            {
+                throw new ArgumentException(
+                    "Full name cannot be empty.");
+            }
+
+            // Validate email
+            if (string.IsNullOrWhiteSpace(dto.Email))
+            {
+                throw new ArgumentException(
+                    "Email cannot be empty.");
+            }
+
+            // Validate role
+            if (string.IsNullOrWhiteSpace(dto.Role))
+            {
+                throw new ArgumentException(
+                    "Role cannot be empty.");
+            }
+
+            var email = dto.Email.Trim();
+
+            // Check whether another user already uses this email
+            var emailExists = await _context.Users
+                .AnyAsync(u =>
+                    u.Id != id &&
+                    u.Email == email);
+
+            if (emailExists)
+            {
+                throw new ArgumentException(
+                    "A user with this email already exists.");
+            }
+
+            user.FullName = dto.FullName.Trim();
             user.Email = dto.Email;
-            user.Role = dto.Role;
+            user.Role = dto.Role.Trim();
             user.IsActive = dto.IsActive;
 
             await _context.SaveChangesAsync();

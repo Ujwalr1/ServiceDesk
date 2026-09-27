@@ -53,6 +53,31 @@ namespace ServiceDesk.API.Services
             TicketCommentCreateDto dto,
             int userId)
         {
+            // Validate comment text
+            if (string.IsNullOrWhiteSpace(dto.CommentText))
+            {
+                throw new ArgumentException("Comment cannot be empty.");
+            }
+
+            // Validate ticket
+            var ticketExists = await _context.Tickets
+                .AnyAsync(t => t.Id == dto.TicketId);
+
+            if (!ticketExists)
+            {
+                throw new ArgumentException("Invalid ticket.");
+            }
+
+            // Validate user
+            var userExists = await _context.Users
+                .AnyAsync(u => u.Id == userId && u.IsActive);
+
+            if (!userExists)
+            {
+                throw new ArgumentException("Invalid or inactive user.");
+            }
+
+
             var comment = new TicketComment
             {
                 TicketId = dto.TicketId,

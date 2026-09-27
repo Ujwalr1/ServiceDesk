@@ -6,16 +6,16 @@ namespace ServiceDesk.API.DTOs.Users
     {
         [Required]
         [MaxLength(100)]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
         [MaxLength(150)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(50)]
-        public string Role { get; set; }
+        public string Role { get; set; } = string.Empty;
 
         public bool IsActive { get; set; }
     }

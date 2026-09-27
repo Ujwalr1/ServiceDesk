@@ -59,6 +59,23 @@ namespace ServiceDesk.API.Services
         public async Task<CategoryResponseDto> CreateAsync(
             CategoryCreateDto dto)
         {
+            // Validate category name
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                throw new ArgumentException(
+                    "Category name cannot be empty.");
+            }
+
+            // Check for duplicate category name
+            var duplicateExists = await _context.Categories
+                .AnyAsync(c => c.Name == dto.Name);
+
+            if (duplicateExists)
+            {
+                throw new ArgumentException(
+                    "A category with this name already exists.");
+            }
+
             var category = new Category
             {
                 Name = dto.Name,
@@ -88,6 +105,25 @@ namespace ServiceDesk.API.Services
             if (category == null)
             {
                 return false;
+            }
+
+            // Validate category name
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                throw new ArgumentException(
+                    "Category name cannot be empty.");
+            }
+
+            // Check for duplicate category name
+            var duplicateExists = await _context.Categories
+                .AnyAsync(c =>
+                    c.Id != id &&
+                    c.Name == dto.Name);
+
+            if (duplicateExists)
+            {
+                throw new ArgumentException(
+                    "A category with this name already exists.");
             }
 
             category.Name = dto.Name;

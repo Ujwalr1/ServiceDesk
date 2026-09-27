@@ -13,10 +13,8 @@ namespace ServiceDesk.API.DTOs.Tickets
         [MaxLength(5000)]
         public string Description { get; set; } = string.Empty;
 
-        [Required]
         public int CategoryId { get; set; }
 
-        [Required]
         public TicketPriority Priority { get; set; }
     }
 }

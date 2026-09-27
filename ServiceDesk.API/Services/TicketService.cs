@@ -4,6 +4,7 @@ using ServiceDesk.API.Services.Interfaces;
 using ServiceDesk.Data.Constants;
 using ServiceDesk.Data.Data;
 using ServiceDesk.Data.Entities;
+using ServiceDesk.Data.Enums;
 
 namespace ServiceDesk.API.Services
 {
@@ -85,13 +86,39 @@ namespace ServiceDesk.API.Services
             TicketCreateDto dto,
             int createdByUserId)
         {
+            // Validate input text
+            if (string.IsNullOrWhiteSpace(dto.Title))
+            {
+                throw new ArgumentException("Ticket title cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Description))
+            {
+                throw new ArgumentException("Ticket description cannot be empty.");
+            }
+
+            // Validate priority
+            if (!Enum.IsDefined(typeof(TicketPriority), dto.Priority))
+            {
+                throw new ArgumentException("Invalid ticket priority.");
+            }
+
+            // Validate category
             var categoryExists = await _context.Categories
-                    .AnyAsync(c => c.Id == dto.CategoryId && c.IsActive);
+                .AnyAsync(c => c.Id == dto.CategoryId && c.IsActive);
 
             if (!categoryExists)
             {
-                // validation failure
                 throw new ArgumentException("Invalid or inactive category.");
+            }
+
+            // Validate creating user
+            var userExists = await _context.Users
+                .AnyAsync(u => u.Id == createdByUserId && u.IsActive);
+
+            if (!userExists)
+            {
+                throw new ArgumentException("Invalid or inactive user.");
             }
 
             var ticket = new Ticket
@@ -134,6 +161,56 @@ namespace ServiceDesk.API.Services
             if (ticket == null)
             {
                 return false;
+            }
+
+            // Validate input text
+            if (string.IsNullOrWhiteSpace(dto.Title))
+            {
+                throw new ArgumentException("Ticket title cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(dto.Description))
+            {
+                throw new ArgumentException("Ticket description cannot be empty.");
+            }
+
+            // Validate priority
+            if (!Enum.IsDefined(typeof(TicketPriority), dto.Priority))
+            {
+                throw new ArgumentException("Invalid ticket priority.");
+            }
+
+            // Validate category
+            var categoryExists = await _context.Categories
+                .AnyAsync(c => c.Id == dto.CategoryId && c.IsActive);
+
+            if (!categoryExists)
+            {
+                throw new ArgumentException("Invalid or inactive category.");
+            }
+
+            // Validate status
+            var statusExists = await _context.TicketStatuses
+                .AnyAsync(s => s.Id == dto.StatusId);
+
+            if (!statusExists)
+            {
+                throw new ArgumentException("Invalid ticket status.");
+            }
+
+            // Validate assigned user if one was provided
+            if (dto.AssignedToUserId.HasValue)
+            {
+                var assignedUserExists = await _context.Users
+                    .AnyAsync(u =>
+                        u.Id == dto.AssignedToUserId.Value &&
+                        u.IsActive);
+
+                if (!assignedUserExists)
+                {
+                    throw new ArgumentException(
+                        "Invalid or inactive assigned user.");
+                }
             }
 
             ticket.Title = dto.Title;
