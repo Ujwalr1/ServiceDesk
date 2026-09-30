@@ -9,10 +9,12 @@ namespace ServiceDesk.API.Services
     public class CategoryService : ICategoryService
     {
         private readonly ServiceDeskDbContext _context;
+        private readonly ILogger<CategoryService> _logger;
 
-        public CategoryService(ServiceDeskDbContext context)
+        public CategoryService(ServiceDeskDbContext context, ILogger<CategoryService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<CategoryResponseDto>> GetAllAsync()
@@ -62,6 +64,9 @@ namespace ServiceDesk.API.Services
             // Validate category name
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
+                _logger.LogWarning(
+                    "Category creation failed. Category name is empty.");
+
                 throw new ArgumentException(
                     "Category name cannot be empty.");
             }
@@ -72,6 +77,10 @@ namespace ServiceDesk.API.Services
 
             if (duplicateExists)
             {
+                _logger.LogWarning(
+                    "Category creation failed. Category name already exists: {CategoryName}",
+                    dto.Name);
+
                 throw new ArgumentException(
                     "A category with this name already exists.");
             }
@@ -86,6 +95,11 @@ namespace ServiceDesk.API.Services
             _context.Categories.Add(category);
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                    "Category created successfully. CategoryId: {CategoryId}, CategoryName: {CategoryName}",
+                    category.Id,
+                    category.Name);
 
             return new CategoryResponseDto
             {
@@ -104,12 +118,20 @@ namespace ServiceDesk.API.Services
 
             if (category == null)
             {
+                _logger.LogWarning(
+                    "Category update failed. Category not found. CategoryId: {CategoryId}",
+                    id);
+
                 return false;
             }
 
             // Validate category name
             if (string.IsNullOrWhiteSpace(dto.Name))
             {
+                _logger.LogWarning(
+                    "Category update failed. Category name is empty. CategoryId: {CategoryId}",
+                    id);
+
                 throw new ArgumentException(
                     "Category name cannot be empty.");
             }
@@ -122,6 +144,12 @@ namespace ServiceDesk.API.Services
 
             if (duplicateExists)
             {
+
+                _logger.LogWarning(
+                    "Category update failed. Category name already exists: {CategoryName}. CategoryId: {CategoryId}",
+                    dto.Name,
+                    id);
+
                 throw new ArgumentException(
                     "A category with this name already exists.");
             }
@@ -132,6 +160,10 @@ namespace ServiceDesk.API.Services
 
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation(
+                "Category updated successfully. CategoryId: {CategoryId}",
+                id);
+
             return true;
         }
 
@@ -141,6 +173,10 @@ namespace ServiceDesk.API.Services
 
             if (category == null)
             {
+                _logger.LogWarning(
+                    "Category deactivation failed. Category not found. CategoryId: {CategoryId}",
+                    id);
+
                 return false;
             }
 
@@ -150,6 +186,10 @@ namespace ServiceDesk.API.Services
             //_context.Categories.Remove(category);
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Category deactivated successfully. CategoryId: {CategoryId}",
+                id);
 
             return true;
         }

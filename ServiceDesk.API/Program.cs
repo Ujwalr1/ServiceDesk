@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ServiceDesk.API.Services;
 using ServiceDesk.API.Services.Interfaces;
 using ServiceDesk.Data.Data;
+using ServiceDesk.API.Exceptions;
 
 namespace ServiceDesk.API
 {
@@ -17,6 +18,12 @@ namespace ServiceDesk.API
                 options.UseSqlServer(
                 builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            // Add services to the container.
+            builder.Services.AddControllers();
+
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+            builder.Services.AddProblemDetails();
+
             // Application service DI
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -24,14 +31,16 @@ namespace ServiceDesk.API
             builder.Services.AddScoped<ITicketCommentService, TicketCommentService>();
             builder.Services.AddScoped<ITicketStatusService, TicketStatusService>();
 
-            // Add services to the container.
 
-            builder.Services.AddControllers();
+            
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -43,7 +52,6 @@ namespace ServiceDesk.API
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

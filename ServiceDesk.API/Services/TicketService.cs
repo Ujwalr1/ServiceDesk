@@ -11,10 +11,12 @@ namespace ServiceDesk.API.Services
     public class TicketService : ITicketService
     {
         private readonly ServiceDeskDbContext _context;
+        private readonly ILogger<TicketService> _logger;
 
-        public TicketService(ServiceDeskDbContext context)
+        public TicketService(ServiceDeskDbContext context, ILogger<TicketService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<TicketResponseDto>> GetAllAsync()
@@ -109,6 +111,10 @@ namespace ServiceDesk.API.Services
 
             if (!categoryExists)
             {
+                _logger.LogWarning(
+                    "Ticket creation failed. Invalid or inactive CategoryId: {CategoryId}",
+                    dto.CategoryId);
+
                 throw new ArgumentException("Invalid or inactive category.");
             }
 
@@ -143,6 +149,11 @@ namespace ServiceDesk.API.Services
             _context.Tickets.Add(ticket);
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                    "Ticket created successfully. TicketId: {TicketId}, CreatedByUserId: {UserId}",
+                    ticket.Id,
+                    createdByUserId);
 
             var createdTicket = await GetByIdAsync(ticket.Id);
 
@@ -186,6 +197,10 @@ namespace ServiceDesk.API.Services
 
             if (!categoryExists)
             {
+                _logger.LogWarning(
+                    "Ticket update failed. Invalid or inactive CategoryId: {CategoryId}",
+                    dto.CategoryId);
+
                 throw new ArgumentException("Invalid or inactive category.");
             }
 
@@ -223,6 +238,10 @@ namespace ServiceDesk.API.Services
             ticket.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Ticket updated successfully. TicketId: {TicketId}",
+                id);
 
             return true;
         }

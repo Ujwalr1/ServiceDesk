@@ -9,10 +9,12 @@ namespace ServiceDesk.API.Services
     public class UserService : IUserService
     {
         private readonly ServiceDeskDbContext _context;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(ServiceDeskDbContext context)
+        public UserService(ServiceDeskDbContext context, ILogger<UserService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<UserResponseDto>> GetAllAsync()
@@ -51,6 +53,9 @@ namespace ServiceDesk.API.Services
             // Validate full name
             if (string.IsNullOrWhiteSpace(dto.FullName))
             {
+                _logger.LogWarning(
+                    "User creation failed. Full name is empty.");
+
                 throw new ArgumentException(
                     "Full name cannot be empty.");
             }
@@ -58,6 +63,9 @@ namespace ServiceDesk.API.Services
             // Validate email
             if (string.IsNullOrWhiteSpace(dto.Email))
             {
+                _logger.LogWarning(
+                    "User creation failed. Email is empty.");
+
                 throw new ArgumentException(
                     "Email cannot be empty.");
             }
@@ -65,6 +73,9 @@ namespace ServiceDesk.API.Services
             // Validate role
             if (string.IsNullOrWhiteSpace(dto.Role))
             {
+                _logger.LogWarning(
+                    "User creation failed. Role is empty.");
+
                 throw new ArgumentException(
                     "Role cannot be empty.");
             }
@@ -77,6 +88,10 @@ namespace ServiceDesk.API.Services
 
             if (emailExists)
             {
+                _logger.LogWarning(
+                    "User creation failed. Email already exists: {Email}",
+                    email);
+
                 throw new ArgumentException(
                     "A user with this email already exists.");
             }
@@ -93,6 +108,12 @@ namespace ServiceDesk.API.Services
             _context.Users.Add(user);
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "User created successfully. UserId: {UserId}, Email: {Email}, Role: {Role}",
+                user.Id,
+                user.Email,
+                user.Role);
 
             return new UserResponseDto
             {
@@ -111,12 +132,20 @@ namespace ServiceDesk.API.Services
 
             if (user == null)
             {
+                _logger.LogWarning(
+                    "User update failed. User not found. UserId: {UserId}",
+                    id);
+
                 return false;
             }
 
             // Validate full name
             if (string.IsNullOrWhiteSpace(dto.FullName))
             {
+                _logger.LogWarning(
+                    "User update failed. Full name is empty. UserId: {UserId}",
+                    id);
+
                 throw new ArgumentException(
                     "Full name cannot be empty.");
             }
@@ -124,6 +153,10 @@ namespace ServiceDesk.API.Services
             // Validate email
             if (string.IsNullOrWhiteSpace(dto.Email))
             {
+                _logger.LogWarning(
+                    "User update failed. Email is empty. UserId: {UserId}",
+                    id);
+
                 throw new ArgumentException(
                     "Email cannot be empty.");
             }
@@ -131,6 +164,10 @@ namespace ServiceDesk.API.Services
             // Validate role
             if (string.IsNullOrWhiteSpace(dto.Role))
             {
+                _logger.LogWarning(
+                    "User update failed. Role is empty. UserId: {UserId}",
+                    id);
+
                 throw new ArgumentException(
                     "Role cannot be empty.");
             }
@@ -145,6 +182,11 @@ namespace ServiceDesk.API.Services
 
             if (emailExists)
             {
+                _logger.LogWarning(
+                   "User update failed. Email already exists: {Email}. UserId: {UserId}",
+                   email,
+                   id);
+
                 throw new ArgumentException(
                     "A user with this email already exists.");
             }
@@ -155,6 +197,10 @@ namespace ServiceDesk.API.Services
             user.IsActive = dto.IsActive;
 
             await _context.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "User updated successfully. UserId: {UserId}",
+                id);
 
             return true;
         }

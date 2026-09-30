@@ -9,10 +9,12 @@ namespace ServiceDesk.API.Services
     public class TicketCommentService : ITicketCommentService
     {
         private readonly ServiceDeskDbContext _context;
+        private readonly ILogger<TicketCommentService> _logger;
 
-        public TicketCommentService(ServiceDeskDbContext context)
+        public TicketCommentService(ServiceDeskDbContext context, ILogger<TicketCommentService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<TicketCommentResponseDto>> GetByTicketIdAsync(
@@ -56,6 +58,11 @@ namespace ServiceDesk.API.Services
             // Validate comment text
             if (string.IsNullOrWhiteSpace(dto.CommentText))
             {
+                _logger.LogWarning(
+                    "Comment creation failed. Comment text is empty. TicketId: {TicketId}, UserId: {UserId}",
+                    dto.TicketId,
+                    userId);
+
                 throw new ArgumentException("Comment cannot be empty.");
             }
 
@@ -65,6 +72,11 @@ namespace ServiceDesk.API.Services
 
             if (!ticketExists)
             {
+                _logger.LogWarning(
+                    "Comment creation failed. Ticket not found. TicketId: {TicketId}, UserId: {UserId}",
+                    dto.TicketId,
+                    userId);
+
                 throw new ArgumentException("Invalid ticket.");
             }
 
@@ -74,9 +86,12 @@ namespace ServiceDesk.API.Services
 
             if (!userExists)
             {
+                _logger.LogWarning(
+                    "Comment creation failed. User is invalid or inactive. UserId: {UserId}",
+                    userId);
+
                 throw new ArgumentException("Invalid or inactive user.");
             }
-
 
             var comment = new TicketComment
             {
@@ -90,6 +105,12 @@ namespace ServiceDesk.API.Services
 
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation(
+                   "Comment created successfully. CommentId: {CommentId}, TicketId: {TicketId}, UserId: {UserId}",
+                   comment.Id,
+                   comment.TicketId,
+                   comment.UserId);
+
             var createdComment = await GetByIdAsync(comment.Id);
 
             return createdComment!;
@@ -102,11 +123,22 @@ namespace ServiceDesk.API.Services
 
             if (comment == null)
             {
+                _logger.LogWarning(
+                    "Comment deletion failed. Comment not found. CommentId: {CommentId}, UserId: {UserId}",
+                    id,
+                    userId);
+
                 return false;
             }
 
             if (comment.UserId != userId)
             {
+
+                _logger.LogWarning(
+                    "Comment deletion failed. User is not the comment owner. CommentId: {CommentId}, UserId: {UserId}",
+                    id,
+                    userId);
+
                 return false;
             }
 
@@ -114,6 +146,11 @@ namespace ServiceDesk.API.Services
 
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation(
+                "Comment deleted successfully. CommentId: {CommentId}, UserId: {UserId}",
+                id,
+
+            userId);
             return true;
         }
     }
