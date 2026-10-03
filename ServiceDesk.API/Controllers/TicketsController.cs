@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using ServiceDesk.API.DTOs;
 using ServiceDesk.API.DTOs.Tickets;
 using ServiceDesk.API.Services.Interfaces;
 
@@ -19,15 +20,18 @@ namespace ServiceDesk.API.Controllers
         }
 
         /// <summary>
-        /// Gets all service desk tickets.
+        /// Gets a filtered and paginated list of service desk tickets.
         /// </summary>
+        /// <param name="query">
+        /// Filtering, searching, and pagination parameters.
+        /// </param>
         [HttpGet]
         [ProducesResponseType(
             StatusCodes.Status200OK,
-            Type = typeof(IEnumerable<TicketResponseDto>))]
-        public async Task<ActionResult<IEnumerable<TicketResponseDto>>> GetAll()
+            Type = typeof(PagedResultDto<TicketResponseDto>))]
+        public async Task<ActionResult<PagedResultDto<TicketResponseDto>>> GetAll([FromQuery] TicketQueryDto query)
         {
-            var tickets = await _ticketService.GetAllAsync();
+            var tickets = await _ticketService.GetAllAsync(query);
 
             return Ok(tickets);
         }

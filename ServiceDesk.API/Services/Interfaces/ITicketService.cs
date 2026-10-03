@@ -1,10 +1,11 @@
-﻿using ServiceDesk.API.DTOs.Tickets;
+﻿using ServiceDesk.API.DTOs;
+using ServiceDesk.API.DTOs.Tickets;
 
 namespace ServiceDesk.API.Services.Interfaces
 {
     public interface ITicketService
     {
-        Task<IEnumerable<TicketResponseDto>> GetAllAsync();
+        Task<PagedResultDto<TicketResponseDto>> GetAllAsync(TicketQueryDto query);
 
         Task<TicketResponseDto?> GetByIdAsync(int id);
 

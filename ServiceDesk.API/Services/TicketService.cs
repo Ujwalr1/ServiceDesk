@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using ServiceDesk.API.DTOs;
 using ServiceDesk.API.DTOs.Tickets;
+using ServiceDesk.API.Enums;
 using ServiceDesk.API.Services.Interfaces;
 using ServiceDesk.Data.Constants;
 using ServiceDesk.Data.Data;
@@ -19,9 +21,144 @@ namespace ServiceDesk.API.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<TicketResponseDto>> GetAllAsync()
+        public async Task<PagedResultDto<TicketResponseDto>> GetAllAsync(TicketQueryDto query)
         {
-            return await _context.Tickets
+            if (query.Page < 1)
+            {
+                throw new ArgumentException(
+                    "Page number must be greater than or equal to 1.");
+            }
+
+            if (query.StatusId.HasValue)
+            {
+                var statusExists = await _context.TicketStatuses
+                    .AnyAsync(s => s.Id == query.StatusId.Value);
+
+                if (!statusExists)
+                {
+                    throw new ArgumentException(
+                        "Invalid ticket status.");
+                }
+            }
+
+            if (query.CategoryId.HasValue)
+            {
+                var categoryExists = await _context.Categories
+                    .AnyAsync(c =>
+                        c.Id == query.CategoryId.Value &&
+                        c.IsActive);
+
+                if (!categoryExists)
+                {
+                    throw new ArgumentException(
+                        "Invalid or inactive category.");
+                }
+            }
+
+            if (query.AssignedToUserId.HasValue)
+            {
+                var userExists = await _context.Users
+                    .AnyAsync(u =>
+                        u.Id == query.AssignedToUserId.Value &&
+                        u.IsActive);
+
+                if (!userExists)
+                {
+                    throw new ArgumentException(
+                        "Invalid or inactive assigned user.");
+                }
+            }
+
+            if (query.Search?.Length > 200)
+            {
+                throw new ArgumentException(
+                    "Search text cannot exceed 200 characters.");
+            }
+
+            IQueryable<Ticket> tickets = _context.Tickets.AsNoTracking();
+
+            // Search
+            if (!string.IsNullOrWhiteSpace(query.Search))
+            {
+                var search = query.Search.Trim();
+
+                tickets = tickets.Where(t =>
+                    t.Title.Contains(search) ||
+                    t.Description.Contains(search));
+            }
+
+            // Filter by status
+            if (query.StatusId.HasValue)
+            {
+                tickets = tickets.Where(t =>
+                    t.StatusId == query.StatusId.Value);
+            }
+
+            // Filter by category
+            if (query.CategoryId.HasValue)
+            {
+                tickets = tickets.Where(t =>
+                    t.CategoryId == query.CategoryId.Value);
+            }
+
+            // Filter by priority
+            if (query.Priority.HasValue)
+            {
+                tickets = tickets.Where(t =>
+                    t.Priority == query.Priority.Value);
+            }
+
+            // Filter by assigned user
+            if (query.AssignedToUserId.HasValue)
+            {
+                tickets = tickets.Where(t =>
+                    t.AssignedToUserId == query.AssignedToUserId.Value);
+            }
+
+            // Apply sorting
+            tickets = query.SortBy switch
+            {
+                TicketSortField.Title => query.SortDescending
+                    ? tickets.OrderByDescending(t => t.Title)
+                    : tickets.OrderBy(t => t.Title),
+
+                TicketSortField.Priority => query.SortDescending
+                    ? tickets.OrderByDescending(t => t.Priority)
+                    : tickets.OrderBy(t => t.Priority),
+
+                TicketSortField.Status => query.SortDescending
+                    ? tickets.OrderByDescending(t => t.Status.Name)
+                    : tickets.OrderBy(t => t.Status.Name),
+
+                TicketSortField.Category => query.SortDescending
+                    ? tickets.OrderByDescending(t => t.Category.Name)
+                    : tickets.OrderBy(t => t.Category.Name),
+
+                TicketSortField.CreatedAt => query.SortDescending
+                    ? tickets.OrderByDescending(t => t.CreatedAt)
+                    : tickets.OrderBy(t => t.CreatedAt),
+
+                _ => throw new ArgumentException("Invalid sort field.")
+            };
+
+            // Total count BEFORE pagination
+            var totalCount = await tickets.CountAsync();
+
+            // Validate pagination
+            var page = query.Page < 1
+                ? 1
+                : query.Page;
+
+            const int pageSize = 10;
+
+            // Calculate total pages
+            var totalPages = (int)Math.Ceiling(
+                totalCount / (double)pageSize);
+
+            // Apply pagination and projection
+            var items = await tickets
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(t => new TicketResponseDto
                 {
                     Id = t.Id,
@@ -48,6 +185,15 @@ namespace ServiceDesk.API.Services
                     UpdatedAt = t.UpdatedAt
                 })
                 .ToListAsync();
+
+            return new PagedResultDto<TicketResponseDto>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
         }
 
 
