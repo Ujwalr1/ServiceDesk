@@ -1,9 +1,10 @@
 
 using Microsoft.EntityFrameworkCore;
+using ServiceDesk.API.Exceptions;
 using ServiceDesk.API.Services;
 using ServiceDesk.API.Services.Interfaces;
 using ServiceDesk.Data.Data;
-using ServiceDesk.API.Exceptions;
+using System.Reflection;
 
 namespace ServiceDesk.API
 {
@@ -36,7 +37,23 @@ namespace ServiceDesk.API
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+                {
+                    Title = "ServiceDesk API",
+                    Version = "v1",
+                    Description = "REST API for managing service desk tickets, users, categories, statuses, and comments."
+                });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+
+                var xmlPath = Path.Combine(
+                    AppContext.BaseDirectory,
+                    xmlFile);
+
+                options.IncludeXmlComments(xmlPath);
+            });
 
             var app = builder.Build();
 

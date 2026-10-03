@@ -4,6 +4,9 @@ using ServiceDesk.API.Services.Interfaces;
 
 namespace ServiceDesk.API.Controllers
 {
+    /// <summary>
+    /// Provides operations for managing service desk tickets.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class TicketsController : ControllerBase
@@ -15,7 +18,13 @@ namespace ServiceDesk.API.Controllers
             _ticketService = ticketService;
         }
 
+        /// <summary>
+        /// Gets all service desk tickets.
+        /// </summary>
         [HttpGet]
+        [ProducesResponseType(
+            StatusCodes.Status200OK,
+            Type = typeof(IEnumerable<TicketResponseDto>))]
         public async Task<ActionResult<IEnumerable<TicketResponseDto>>> GetAll()
         {
             var tickets = await _ticketService.GetAllAsync();
@@ -23,7 +32,15 @@ namespace ServiceDesk.API.Controllers
             return Ok(tickets);
         }
 
+        /// <summary>
+        /// Gets a service desk ticket by its ID.
+        /// </summary>
+        /// <param name="id">The ticket ID.</param>
         [HttpGet("{id}")]
+        [ProducesResponseType(
+            StatusCodes.Status200OK,
+            Type = typeof(TicketResponseDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TicketResponseDto>> GetById(int id)
         {
             var ticket = await _ticketService.GetByIdAsync(id);
@@ -36,7 +53,17 @@ namespace ServiceDesk.API.Controllers
             return Ok(ticket);
         }
 
+        /// <summary>
+        /// Creates a new service desk ticket.
+        /// </summary>
+        /// <param name="dto">Ticket creation information.</param>
         [HttpPost]
+        [ProducesResponseType(
+            StatusCodes.Status201Created,
+            Type = typeof(TicketResponseDto))]
+        [ProducesResponseType(
+            StatusCodes.Status400BadRequest,
+            Type = typeof(ProblemDetails))]
         public async Task<ActionResult<TicketResponseDto>> Create(
             TicketCreateDto dto)
         {
@@ -53,7 +80,16 @@ namespace ServiceDesk.API.Controllers
                 ticket);
         }
 
+        /// <summary>
+        /// Updates an existing service desk ticket.
+        /// </summary>
+        /// <param name="id">The ticket ID.</param>
+        /// <param name="dto">Updated ticket information.</param>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest,
+            Type = typeof(ProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(
             int id,
             TicketUpdateDto dto)

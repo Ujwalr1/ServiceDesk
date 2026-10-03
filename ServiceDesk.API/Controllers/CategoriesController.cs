@@ -4,6 +4,9 @@ using ServiceDesk.API.Services.Interfaces;
 
 namespace ServiceDesk.API.Controllers
 {
+    /// <summary>
+    /// Provides operations for managing service desk categories.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class CategoriesController : ControllerBase
@@ -15,7 +18,13 @@ namespace ServiceDesk.API.Controllers
             _categoryService = categoryService;
         }
 
+        /// <summary>
+        /// Gets all categories, including inactive categories.
+        /// </summary>
         [HttpGet]
+        [ProducesResponseType(
+            StatusCodes.Status200OK,
+            Type = typeof(IEnumerable<CategoryResponseDto>))]
         public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetAll()
         {
             var categories = await _categoryService.GetAllAsync();
@@ -23,7 +32,13 @@ namespace ServiceDesk.API.Controllers
             return Ok(categories);
         }
 
+        /// <summary>
+        /// Gets all active categories.
+        /// </summary>
         [HttpGet("active")]
+        [ProducesResponseType(
+            StatusCodes.Status200OK,
+            Type = typeof(IEnumerable<CategoryResponseDto>))]
         public async Task<ActionResult<IEnumerable<CategoryResponseDto>>> GetActive()
         {
             var categories = await _categoryService.GetActiveAsync();
@@ -31,7 +46,15 @@ namespace ServiceDesk.API.Controllers
             return Ok(categories);
         }
 
+        /// <summary>
+        /// Gets a category by its ID.
+        /// </summary>
+        /// <param name="id">The category ID.</param>s
         [HttpGet("{id}")]
+        [ProducesResponseType(
+            StatusCodes.Status200OK,
+            Type = typeof(CategoryResponseDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CategoryResponseDto>> GetById(int id)
         {
             var category = await _categoryService.GetByIdAsync(id);
@@ -44,7 +67,17 @@ namespace ServiceDesk.API.Controllers
             return Ok(category);
         }
 
+        /// <summary>
+        /// Creates a new category.
+        /// </summary>
+        /// <param name="dto">Category creation information.</param>
         [HttpPost]
+        [ProducesResponseType(
+            StatusCodes.Status201Created,
+            Type = typeof(CategoryResponseDto))]
+        [ProducesResponseType(
+            StatusCodes.Status400BadRequest,
+            Type = typeof(ProblemDetails))]
         public async Task<ActionResult<CategoryResponseDto>> Create(
             CategoryCreateDto dto)
         {
@@ -56,7 +89,17 @@ namespace ServiceDesk.API.Controllers
                 category);
         }
 
+        /// <summary>
+        /// Updates an existing category.
+        /// </summary>
+        /// <param name="id">The category ID.</param>
+        /// <param name="dto">Updated category information.</param>
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(
+            StatusCodes.Status400BadRequest,
+            Type = typeof(ProblemDetails))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(
             int id,
             CategoryUpdateDto dto)
@@ -71,7 +114,13 @@ namespace ServiceDesk.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Deactivates an existing category.
+        /// </summary>
+        /// <param name="id">The category ID.</param>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await _categoryService.DeleteAsync(id);

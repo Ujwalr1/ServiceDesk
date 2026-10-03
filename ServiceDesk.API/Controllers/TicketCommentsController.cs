@@ -4,6 +4,9 @@ using ServiceDesk.API.Services.Interfaces;
 
 namespace ServiceDesk.API.Controllers
 {
+    /// <summary>
+    /// Provides operations for managing comments associated with service desk tickets.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class TicketCommentsController : ControllerBase
@@ -16,7 +19,14 @@ namespace ServiceDesk.API.Controllers
             _ticketCommentService = ticketCommentService;
         }
 
+        /// <summary>
+        /// Gets all comments associated with a specific ticket.
+        /// </summary>
+        /// <param name="ticketId">The ID of the ticket.</param>
         [HttpGet("ticket/{ticketId}")]
+        [ProducesResponseType(
+            StatusCodes.Status200OK,
+            Type = typeof(IEnumerable<TicketCommentResponseDto>))]
         public async Task<ActionResult<IEnumerable<TicketCommentResponseDto>>> GetByTicketId(
             int ticketId)
         {
@@ -26,7 +36,15 @@ namespace ServiceDesk.API.Controllers
             return Ok(comments);
         }
 
+        /// <summary>
+        /// Gets a comment by its ID.
+        /// </summary>
+        /// <param name="id">The comment ID.</param>
         [HttpGet("{id}")]
+        [ProducesResponseType(
+            StatusCodes.Status200OK,
+            Type = typeof(TicketCommentResponseDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<TicketCommentResponseDto>> GetById(int id)
         {
             var comment = await _ticketCommentService.GetByIdAsync(id);
@@ -39,7 +57,17 @@ namespace ServiceDesk.API.Controllers
             return Ok(comment);
         }
 
+        /// <summary>
+        /// Creates a new comment for a ticket.
+        /// </summary>
+        /// <param name="dto">Comment creation information.</param>
         [HttpPost]
+        [ProducesResponseType(
+            StatusCodes.Status201Created,
+            Type = typeof(TicketCommentResponseDto))]
+        [ProducesResponseType(
+            StatusCodes.Status400BadRequest,
+            Type = typeof(ProblemDetails))]
         public async Task<ActionResult<TicketCommentResponseDto>> Create(
             TicketCommentCreateDto dto)
         {
@@ -56,7 +84,13 @@ namespace ServiceDesk.API.Controllers
                 comment);
         }
 
+        /// <summary>
+        /// Deletes a comment created by the current user.
+        /// </summary>
+        /// <param name="id">The comment ID.</param>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             // Temporary until authentication is implemented
